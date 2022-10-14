@@ -1,11 +1,18 @@
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const expressJWT = require("express-jwt");
+const nodemailer = require("nodemailer");
 
 exports.signup = async (req, res) => {
-  const {name, email, phoneNumber, password, address} = req.body;
+  const { name, email, phoneNumber, password, address } = req.body;
   try {
-    const user = await User.create({name, email, phoneNumber, password, address});
+    const user = await User.create({
+      name,
+      email,
+      phoneNumber,
+      password,
+      address,
+    });
     await user.save();
     user.encry_password = undefined;
     user.createdAt = undefined;
@@ -22,32 +29,30 @@ exports.signup = async (req, res) => {
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        error: "Invalid email or password",
+      });
+    }
 
-  const user = await User.findOne({ email })
-  if (!user) {
+    if (await user.authenticate(password)) {
+      const token = jwt.sign({ _id: user._id }, process.env.SECRET);
+      // res.cookie("token", token, { expires: new Date() + 9999 });
+
+      const { _id, name, email, role } = user;
+
+      return res.json({ token, user: { _id, name, email, role } });
+    }
+
+    return res.status(400).json({
+      error: "Invalid email or password",
+    });
+  } catch (error) {
     return res.status(400).json({
       error: "Invalid email or password",
     });
   }
-
-  if ( await user.authenticate(password)) {
-    const token = jwt.sign({ _id: user._id }, process.env.SECRET);
-    // res.cookie("token", token, { expires: new Date() + 9999 });
-
-    const { _id, name, email, role } = user;
-
-    return res.json({ token, user: { _id, name, email, role } });
-  }
-
-  return res.status(400).json({
-    error: "Invalid email or password",
-  });
-} catch (error) {
-  console.log(error.message)
-  return res.status(400).json({
-    error: "Invalid email or password, reached here",
-  });
-}
 };
 
 exports.logout = (req, res) => {
@@ -57,11 +62,65 @@ exports.logout = (req, res) => {
   });
 };
 
+exports.forgotpassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        error: "Invalid email",
+      });
+    }
+    const secret = process.env.SECRET + user.encry_password;
+    const payload = {
+      email: user.email,
+      id: user._id,
+    };
+    const token = jwt.sign(payload, secret, { expiresIn: "15m" });
+    const link = `http://localhost:3000/reset-password/${user.id}/${token}`;
+
+    var transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "aashiq5342@gmail.com",
+        pass: "mwkrpgmjakpjemrc",
+      },
+    });
+
+    var mailOptions = {
+      from: "aashiq5342@gmail.com",
+      // to: email,
+      to: "aashiq5342@gmail.com",
+      subject: "Password Reset (FreshFromFarm)",
+      html: `<h1>Password Reset</h1> 
+      <h3>Link to reset your FreshFromFarm password</h3>
+      <br />
+      <a href=${link}>${link}</a>
+      `,
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        return res.status(500).json({ error: "Internal error" });
+      } else {
+        return res
+          .status(200)
+          .json({ message: "Reset email send successfully" });
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: "Internal error",
+    });
+  }
+};
+
 // isSignedIN
 exports.isSignedIn = expressJWT({
   secret: process.env.SECRET,
   algorithms: ["HS256"],
-  userProperty: "user"
+  userProperty: "user",
 });
 
 // isAuthenticated

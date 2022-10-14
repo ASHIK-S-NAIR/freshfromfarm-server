@@ -1,7 +1,7 @@
 const express= require('express');
 const router= express.Router();
 
-const {signup, login, logout} = require('../controllers/auth');
+const {signup, login, logout, forgotpassword} = require('../controllers/auth');
 
 //signup
 // @type POST
@@ -23,5 +23,12 @@ router.post('/login', login);
 // @desc route to logout for all customers, employee and admin
 // @access PUBLIC
 router.get('/logout', logout);
+
+// forgotpassword
+// @type POST
+// @route /api/v1/forgotpassword
+// @desc route to verify email for reseting password
+// @access PUBLIC
+router.post('/forgotpassword', forgotpassword);
 
 module.exports = router;
