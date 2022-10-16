@@ -3,6 +3,7 @@ const User = require("../models/user");
 const Employee = require("../models/employee");
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
+const nodemailer = require("nodemailer");
 
 // getOrderById - Middleware
 exports.getOrderById = async (req, res, next, id) => {
@@ -176,18 +177,18 @@ exports.getAllOrders = async (req, res) => {
     if (status === "pending") {
       const orders = await Order.find({
         $or: [{ Ostatus: "Ordered" }, { Ostatus: "Not-Confirmed" }],
-      }).populate('Ouser');
+      }).populate("Ouser");
 
       return res.json(orders);
     }
 
     if (status === "all") {
-      const orders = await Order.find().populate('Ouser');
+      const orders = await Order.find().populate("Ouser");
 
       return res.json(orders);
     }
 
-    const orders = await Order.find({ Ostatus: status }).populate('Ouser');
+    const orders = await Order.find({ Ostatus: status }).populate("Ouser");
     return res.json(orders);
   } catch (error) {
     return res.status(400).json({
@@ -212,7 +213,6 @@ exports.deleteOrder = async (req, res) => {
 
 // updateOrderStatus
 exports.updateOrderStatus = async (req, res) => {
-  console.log("Game starts here 1");
   try {
     const { status } = req.body;
     await Order.findByIdAndUpdate(
@@ -220,32 +220,20 @@ exports.updateOrderStatus = async (req, res) => {
       { $set: { Ostatus: status } },
       { new: true, useFindAndModify: false }
     );
-    console.log("Game starts here 2");
-    console.log("Status", status);
+
+    const order = await Order.findById(req.order._id);
 
     if (status === ("Delivered" || "Cancelled")) {
-      console.log("reached here 1");
-      const order = await Order.findById(req.order._id);
       const { Eorders } = await Employee.findById(
         { _id: order.OemployeeId },
         "Eorders"
       ).populate("Eorders.EorderId");
 
-      console.log("reached here 2");
-
-      console.log("EOrders", Eorders)
-
-      Eorders.map(Eorder => console.log(Eorder.EorderId.Ostatus))
-
       const EordersStatus = Eorders.some(
         (Eorder) => Eorder.EorderId.Ostatus !== ("Delivered" || "Cancelled")
       );
 
-      console.log("the value if eorder status is ", EordersStatus);
-
       if (EordersStatus === false) {
-        console.log("reached here 3");
-        console.log("EorderStatus", EordersStatus);
         await Employee.findByIdAndUpdate(
           { _id: order.OemployeeId },
           { $set: { Estatus: "Available" } },
@@ -350,4 +338,34 @@ exports.updateOrderEmployee = async (req, res, next) => {
       message: "Failed to update order employee",
     });
   }
+};
+
+const sendEmalUpdate = async (orderId) => {
+  var transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "aashiq5342@gmail.com",
+      pass: "mwkrpgmjakpjemrc",
+    },
+  });
+
+  var mailOptions = {
+    from: "aashiq5342@gmail.com",
+    // to: email,
+    to: "aashiq5342@gmail.com",
+    subject: `Order Update (FreshFromFarm) - ${orderId}`,
+    html: `<h1>Order Update (FreshFromFarm) - ${orderId}</h1> 
+    <h3>Your order </h3>
+    <br />
+    <a href=${link}>${link}</a>
+    `,
+  };
+
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      return res.status(500).json({ error: "Internal error" });
+    } else {
+      return res.status(200).json({ message: "Reset email send successfully" });
+    }
+  });
 };

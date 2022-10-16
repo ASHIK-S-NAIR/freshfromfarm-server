@@ -78,7 +78,7 @@ exports.forgotpassword = async (req, res) => {
       id: user._id,
     };
     const token = jwt.sign(payload, secret, { expiresIn: "15m" });
-    const link = `http://localhost:3000/reset-password/${user.id}/${token}`;
+    const link = `http://localhost:3000/resetpassword/${user.id}/${token}`;
 
     var transporter = nodemailer.createTransport({
       service: "gmail",
@@ -110,6 +110,49 @@ exports.forgotpassword = async (req, res) => {
       }
     });
   } catch (error) {
+    return res.status(500).json({
+      error: "Internal error",
+    });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  const { password } = req.body;
+  const { userId, token } = req.params;
+
+  try {
+    const user = await User.findById({ _id: userId });
+
+    if (!user) {
+      return res.status(400).json({
+        error: "Invalid email or password",
+      });
+    }
+    console.log("user", user)
+    const secret = process.env.SECRET + user.encry_password;
+    const payload = jwt.verify(token, secret);
+    console.log(payload);
+
+    if (payload.email !== user.email || payload.id != user._id) {
+      return res.status(401).json({
+        error: "token failure",
+      });
+    }
+    const updatedPassordEncry = await user.securePassword(password);
+    if (updatedPassordEncry) {
+      const userDetail = await User.findByIdAndUpdate(
+        { _id: req.profile._id },
+        { $set: { encry_password: updatedPassordEncry } },
+        { new: true, useFindAndModify: false }
+      );
+      await userDetail.save();
+      console.log("password updation successfull");
+      return res.json({
+        message: "Password updation successfull",
+      });
+    }
+  } catch (error) {
+    console.log("error", error.message);
     return res.status(500).json({
       error: "Internal error",
     });

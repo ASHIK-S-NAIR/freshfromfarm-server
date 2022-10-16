@@ -1,7 +1,11 @@
 const express= require('express');
 const router= express.Router();
 
-const {signup, login, logout, forgotpassword} = require('../controllers/auth');
+const {signup, login, logout, forgotpassword, resetPassword} = require('../controllers/auth');
+const { getUserById } = require('../controllers/user');
+
+// params
+router.param("userId", getUserById);
 
 //signup
 // @type POST
@@ -30,5 +34,12 @@ router.get('/logout', logout);
 // @desc route to verify email for reseting password
 // @access PUBLIC
 router.post('/forgotpassword', forgotpassword);
+
+// resetpassword
+// @type POST
+// @route /api/v1/resetpassword
+// @desc route to reset password
+// @access PRIVATE
+router.post('/resetpassword/:userId/:token', resetPassword);
 
 module.exports = router;
