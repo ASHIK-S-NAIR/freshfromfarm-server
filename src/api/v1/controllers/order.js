@@ -68,6 +68,8 @@ exports.createOrder = async (req, res) => {
 
     order.save();
 
+    sendEmalUpdate(order, "createOrder");
+
     await User.findByIdAndUpdate(
       { _id: req.profile._id },
       { $set: { cart: [] } },
@@ -222,6 +224,7 @@ exports.updateOrderStatus = async (req, res) => {
     );
 
     const order = await Order.findById(req.order._id);
+    sendEmalUpdate(order, "updateOrderStatus");
 
     if (status === ("Delivered" || "Cancelled")) {
       const { Eorders } = await Employee.findById(
@@ -263,6 +266,7 @@ exports.updatePaymentStatus = async (req, res) => {
     );
 
     const order = await Order.findById(req.order._id);
+    sendEmalUpdate(order, "updateOrderPaymentStatus");
     if (order.Ostatus === "Not-Confirmed") {
       await Order.findByIdAndUpdate(
         { _id: req.order._id },
@@ -340,7 +344,55 @@ exports.updateOrderEmployee = async (req, res, next) => {
   }
 };
 
-const sendEmalUpdate = async (orderId) => {
+const sendEmalUpdate = async (order, type) => {
+  const user = await User.findById(order.Ouser);
+
+  const types = {
+    createOrder: {
+      subject: `Order Placed (FreshFromFarm) - ${order._id}`,
+      content: `<h1>Order Placed Successfully (FreshFromFarm)</h1> 
+      <h3>Your order - ${order._id}</h3>
+      <br />
+      <p>The order has been successfully placed - <b> ${order._id}</b> <p>
+      <p>Order Status - ${order.Ostatus} <p>
+      <p>Order Amount - ${order.OtotalPrice} <p>
+      <p>Payment Mode - ${order.OpaymentMode} <p>
+      <p>Payment Status - ${order.OpaymentStatus} <p>
+      <h4>Order Address</h4>
+      <p>HouseName - ${order.Oaddress.houseName}</p>
+      <p>streetName - ${order.Oaddress.streetName}</p>
+      `,
+    },
+    updateOrderStatus: {
+      subject: `Order Status Update (FreshFromFarm) - ${order._id}`,
+      content: `<h1>Order Status Update (FreshFromFarm)</h1> 
+      <h3>Your order - ${order._id}</h3>
+      <br />
+      <p>The order status has been updated to - <b> ${order.Ostatus}</b> <p>
+      <p>Order Amount - ${order.OtotalPrice} <p>
+      <p>Payment Mode - ${order.OpaymentMode} <p>
+      <p>Payment Status - ${order.OpaymentStatus} <p>
+      <h4>Order Address</h4>
+      <p>HouseName - ${order.Oaddress.houseName}</p>
+      <p>streetName - ${order.Oaddress.streetName}</p>
+      `,
+    },
+    updateOrderPaymentStatus: {
+      subject: `Order Payment status Update (FreshFromFarm) - ${order._id}`,
+      content: `<h1>Order Payment Status Update (FreshFromFarm)</h1> 
+      <h3>Your order - ${order._id}</h3>
+      <br />
+      <p>The order payment status has been updated to - <b> ${order.OpaymentStatus}</b> <p>
+      <p>Order Status - ${order.Ostatus} <p>
+      <p>Order Amount - ${order.OtotalPrice} <p>
+      <p>Payment Mode - ${order.OpaymentMode} <p>
+      <h4>Order Address</h4>
+      <p>HouseName - ${order.Oaddress.houseName}</p>
+      <p>streetName - ${order.Oaddress.streetName}</p>
+      `,
+    },
+  };
+
   var transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -351,14 +403,10 @@ const sendEmalUpdate = async (orderId) => {
 
   var mailOptions = {
     from: "aashiq5342@gmail.com",
-    // to: email,
+    // to: user.email,
     to: "aashiq5342@gmail.com",
-    subject: `Order Update (FreshFromFarm) - ${orderId}`,
-    html: `<h1>Order Update (FreshFromFarm) - ${orderId}</h1> 
-    <h3>Your order </h3>
-    <br />
-    <a href=${link}>${link}</a>
-    `,
+    subject: types[type].subject,
+    html: types[type].content,
   };
 
   transporter.sendMail(mailOptions, function (error, info) {
