@@ -80,6 +80,22 @@ exports.getAllEmployees = async (req, res) => {
   }
 };
 
+exports.getAllEmployeesWebSocket = async (status) => {
+  try {
+    if (status == "all") {
+      const employees = await Employee.find({}).populate("Euser");
+      return employees;
+    } else {
+      const employees = await Employee.find({ Estatus: status }).populate(
+        "Euser"
+      );
+      return employees;
+    }
+  } catch (error) {
+    return "";
+  }
+};
+
 exports.updateEmployeeStatus = async (req, res) => {
   try {
     const employee = await Employee.findOneAndUpdate(
@@ -116,12 +132,20 @@ exports.deleteEmployee = async (req, res) => {
 };
 
 // countEmployers
+// exports.countEmployers = async (req, res) => {
+//   try {
+//     const count = await Employee.countDocuments({});
+//     return res.json(count);
+//   } catch (error) {
+//     return res.status(400).json("Failed to count Employers");
+//   }
+// };
 exports.countEmployers = async (req, res) => {
   try {
     const count = await Employee.countDocuments({});
-    return res.json(count);
+    return count;
   } catch (error) {
-    return res.status(400).json("Failed to count Employers");
+    return "";
   }
 };
 

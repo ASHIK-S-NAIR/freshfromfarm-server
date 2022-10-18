@@ -63,11 +63,7 @@ exports.addToUserCart = async (req, res) => {
       });
     }
 
-    // const cartItem = cart.find((cartItem) => cartItem.product === productId);
-
     const cartItem = cart.some((cartItem) => cartItem.product == productId);
-
-    console.log("cartItem", cartItem);
 
     if (cartItem) {
       cart.map(async (cartItem) => {
@@ -300,12 +296,20 @@ exports.getUserOrders = async (req, res) => {
 };
 
 // countCustomers
+// exports.countCustomers = async (req, res) => {
+//   try {
+//     const count = await User.countDocuments({ role: "0" });
+//     return res.json(count);
+//   } catch (error) {
+//     return res.status(400).json("Failed to count customers");
+//   }
+// };
 exports.countCustomers = async (req, res) => {
   try {
     const count = await User.countDocuments({ role: "0" });
-    return res.json(count);
+    return count;
   } catch (error) {
-    return res.status(400).json("Failed to count customers");
+    return "";
   }
 };
 
@@ -316,5 +320,15 @@ exports.getCustomers = async (req, res) => {
     return res.json(customers);
   } catch (error) {
     return res.status(400).json("Failed to get customers");
+  }
+};
+
+// getCustomers
+exports.getCustomers = async () => {
+  try {
+    const customers = await User.find({ role: "0" }).populate("orders");
+    return customers;
+  } catch (error) {
+    return "";
   }
 };

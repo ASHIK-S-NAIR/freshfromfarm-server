@@ -8,7 +8,6 @@ const { uploadFile, getFileStream } = require("../s3");
 
 // createProduct
 exports.createProduct = async (req, res) => {
-  console.log("req.body", req.body);
   try {
     var obj = {
       pName: req.body.pName,
@@ -38,6 +37,8 @@ exports.createProduct = async (req, res) => {
       },
       { new: true, useFindAndModify: false }
     );
+
+    // setValues();
 
     return res.json(result);
   } catch (error) {
@@ -164,6 +165,19 @@ exports.getAllProducts = async (req, res) => {
     });
   }
 };
+exports.getAllProductsWebSocket = async (category) => {
+  try {
+    if (category === "all") {
+      const products = await Product.find({});
+      return products;
+    }
+
+    const products = await Product.find({ pCategory: category }, {});
+    return products;
+  } catch (error) {
+    return "";
+  }
+};
 
 exports.getAllCategoryProducts = async (req, res) => {
   try {
@@ -204,12 +218,21 @@ exports.updateStock = async (req, res, next) => {
 };
 
 // countProducts
-exports.countProducts = async (req, res) => {
+// exports.countProducts = async (req, res) => {
+//   try {
+//     const count = await Product.countDocuments();
+//     return res.json(count);
+//   } catch (error) {
+//     return res.status(400).json("Failed to count Products");
+//   }
+// };
+exports.countProducts = async () => {
   try {
     const count = await Product.countDocuments();
-    return res.json(count);
+    return count;
   } catch (error) {
-    return res.status(400).json("Failed to count Products");
+    // return res.status(400).json("Failed to count Products");
+    return "";
   }
 };
 

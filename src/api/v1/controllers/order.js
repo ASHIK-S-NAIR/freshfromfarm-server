@@ -199,6 +199,31 @@ exports.getAllOrders = async (req, res) => {
   }
 };
 
+// getAllOrders
+exports.getAllOrdersWebSocket = async (status) => {
+  try {
+
+    if (status === "pending") {
+      const orders = await Order.find({
+        $or: [{ Ostatus: "Ordered" }, { Ostatus: "Not-Confirmed" }],
+      }).populate("Ouser");
+
+      return orders;
+    }
+
+    if (status === "all") {
+      const orders = await Order.find().populate("Ouser");
+
+      return orders;
+    }
+
+    const orders = await Order.find({ Ostatus: status }).populate("Ouser");
+    return res.json(orders);
+  } catch (error) {
+    return "";
+  }
+};
+
 // deleteOrder
 exports.deleteOrder = async (req, res) => {
   try {
@@ -305,15 +330,23 @@ exports.updateOrder = async (req, res) => {
 };
 
 // countOrders
-exports.countOrders = async (req, res) => {
+// exports.countOrders = async (req, res) => {
+//   try {
+//     const count = await Order.countDocuments({});
+//     return res.json(count);
+//   } catch (error) {
+//     console.log(error.message);
+//     return res.json({
+//       message: "Counting orders failed",
+//     });
+//   }
+// };
+exports.countOrders = async () => {
   try {
     const count = await Order.countDocuments({});
-    return res.json(count);
+    return count;
   } catch (error) {
-    console.log(error.message);
-    return res.json({
-      message: "Counting orders failed",
-    });
+    return "";
   }
 };
 
