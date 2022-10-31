@@ -132,22 +132,23 @@ exports.deleteEmployee = async (req, res) => {
 };
 
 // countEmployers
-// exports.countEmployers = async (req, res) => {
-//   try {
-//     const count = await Employee.countDocuments({});
-//     return res.json(count);
-//   } catch (error) {
-//     return res.status(400).json("Failed to count Employers");
-//   }
-// };
 exports.countEmployers = async (req, res) => {
   try {
     const count = await Employee.countDocuments({});
-    return count;
+    return res.json(count);
   } catch (error) {
-    return "";
+    return res.status(400).json("Failed to count Employers");
   }
 };
+
+// exports.countEmployers = async (req, res) => {
+//   try {
+//     const count = await Employee.countDocuments({});
+//     return count;
+//   } catch (error) {
+//     return "";
+//   }
+// };
 
 // getAllDeleveries
 exports.getAllDeliveries = async (req, res) => {

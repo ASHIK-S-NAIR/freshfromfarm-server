@@ -330,25 +330,26 @@ exports.updateOrder = async (req, res) => {
 };
 
 // countOrders
-// exports.countOrders = async (req, res) => {
-//   try {
-//     const count = await Order.countDocuments({});
-//     return res.json(count);
-//   } catch (error) {
-//     console.log(error.message);
-//     return res.json({
-//       message: "Counting orders failed",
-//     });
-//   }
-// };
-exports.countOrders = async () => {
+exports.countOrders = async (req, res) => {
   try {
     const count = await Order.countDocuments({});
-    return count;
+    return res.json(count);
   } catch (error) {
-    return "";
+    console.log(error.message);
+    return res.json({
+      message: "Counting orders failed",
+    });
   }
 };
+
+// exports.countOrders = async () => {
+//   try {
+//     const count = await Order.countDocuments({});
+//     return count;
+//   } catch (error) {
+//     return "";
+//   }
+// };
 
 exports.updateOrderEmployee = async (req, res, next) => {
   try {

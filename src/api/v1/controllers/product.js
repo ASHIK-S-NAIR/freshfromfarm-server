@@ -218,23 +218,24 @@ exports.updateStock = async (req, res, next) => {
 };
 
 // countProducts
-// exports.countProducts = async (req, res) => {
-//   try {
-//     const count = await Product.countDocuments();
-//     return res.json(count);
-//   } catch (error) {
-//     return res.status(400).json("Failed to count Products");
-//   }
-// };
-exports.countProducts = async () => {
+exports.countProducts = async (req, res) => {
   try {
     const count = await Product.countDocuments();
-    return count;
+    return res.json(count);
   } catch (error) {
-    // return res.status(400).json("Failed to count Products");
-    return "";
+    return res.status(400).json("Failed to count Products");
   }
 };
+
+// exports.countProducts = async () => {
+//   try {
+//     const count = await Product.countDocuments();
+//     return count;
+//   } catch (error) {
+//     // return res.status(400).json("Failed to count Products");
+//     return "";
+//   }
+// };
 
 exports.productSearch = async (req, res) => {
   try {

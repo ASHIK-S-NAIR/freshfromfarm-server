@@ -296,22 +296,22 @@ exports.getUserOrders = async (req, res) => {
 };
 
 // countCustomers
-// exports.countCustomers = async (req, res) => {
-//   try {
-//     const count = await User.countDocuments({ role: "0" });
-//     return res.json(count);
-//   } catch (error) {
-//     return res.status(400).json("Failed to count customers");
-//   }
-// };
 exports.countCustomers = async (req, res) => {
   try {
     const count = await User.countDocuments({ role: "0" });
-    return count;
+    return res.json(count);
   } catch (error) {
-    return "";
+    return res.status(400).json("Failed to count customers");
   }
 };
+// exports.countCustomers = async (req, res) => {
+//   try {
+//     const count = await User.countDocuments({ role: "0" });
+//     return count;
+//   } catch (error) {
+//     return "";
+//   }
+// };
 
 // getCustomers
 exports.getCustomers = async (req, res) => {
@@ -324,11 +324,11 @@ exports.getCustomers = async (req, res) => {
 };
 
 // getCustomers
-exports.getCustomers = async () => {
-  try {
-    const customers = await User.find({ role: "0" }).populate("orders");
-    return customers;
-  } catch (error) {
-    return "";
-  }
-};
+// exports.getCustomers = async () => {
+//   try {
+//     const customers = await User.find({ role: "0" }).populate("orders");
+//     return customers;
+//   } catch (error) {
+//     return "";
+//   }
+// };
